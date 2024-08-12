@@ -160,7 +160,21 @@ def ask_for_token(domain):
 
     return token
 
+def ask_for_threads(settings):
+    """
+    Prompt the user for prefferred amount of threads.
 
+    Default value is single-threaded (1). Controls how many threads spawn for file downloads. #TODO a seperate flag is needed for number of threads for courses.
+    """
+    found = False
+
+    # Keep asking until we get an answer
+    while not found:
+        threads = input("Enter the number of threads to use (default: 1): ").strip()
+        found = helpers.validate_thread_count(threads)
+        
+    return threads
+    
 def ask_for_courses(settings, api):
 
     courses = api.get_courses()
