@@ -74,7 +74,7 @@ def run_canvas_sync():
 
     # Get command line arguments (C-style)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], u"hsiSp:", [u"help", u"setup", u"info", u"sync", u"password"])
+        opts, args = getopt.getopt(sys.argv[1:], u"hsiSp:", [u"help", u"setup", u"info", u"sync", u"password", u"threads="])
     except getopt.GetoptError as err:
         # print help information and exit
         print(err)
@@ -85,7 +85,8 @@ def run_canvas_sync():
     show_info = False
     manual_sync = False
     password = ""
-
+    threads = None
+    
     if len(opts) != 0:
         for o, a in opts:
             if o in (u"-h", u"--help"):
@@ -105,6 +106,14 @@ def run_canvas_sync():
                 print ("Warning: entering password via command "
                        "line can be dangerous")
                 password = a.rstrip()
+            elif o in (u"-t", u"--threads"):
+                try:
+                    threads = int(a)
+                    if(not helpers.validate_thread_count(threads)):
+                        threads = 1
+                except ValueError:
+                    print("[Error] Number of threads is invalid, please input a positive integer")
+                    sys.exit(1)
             else:
                 # Unknown option
                 assert False, u"Unknown option specified, please refer to " \
@@ -125,7 +134,7 @@ def run_canvas_sync():
 
     # If -S or --sync was specified, sync and exit
     if manual_sync:
-        do_sync(settings, password)
+        do_sync(settings, password, threads)
         sys.exit()
 
     # If here, CanvasSync was launched without parameters, show main screen
@@ -154,7 +163,7 @@ def main_menu(settings):
         do_sync(settings, "")
 
 
-def do_sync(settings, password=None):
+def do_sync(settings, password=None, threads=1):
     # Initialize the Instructure Api object used to make API
     # calls to the Canvas server
     valid_token = settings.load_settings(password)
@@ -166,7 +175,7 @@ def do_sync(settings, password=None):
     api = InstructureApi(settings)
 
     # Start Synchronizer with the current settings
-    synchronizer = Synchronizer(settings=settings, api=api)
+    synchronizer = Synchronizer(settings=settings, api=api, threads=threads)
     synchronizer.sync()
 
     # If here, sync was completed, show prompt
