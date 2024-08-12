@@ -1,5 +1,6 @@
-# CanvasSync
-Synchronise modules, assignments and files located on a Canvas by Instructure web server to your local computer.
+# This is a fork of CanvasSync
+I have attempted to implement multi-threading functionality to this script to help with the first time file sync, as the original could easily take 20+ hours if users had many courses. The only other change made was a small bugfix in which courses were iterated through when displaying them in settings, it wasn't checking if a course was "access_restricted_by_date" before attempting to load its course_code and name, which threw an error. This was fixed with a simple filter of the bad courses.
+
 
 Description
 -----------
@@ -23,19 +24,20 @@ The user may specify various settings including:
 
 Installation
 -------------
-The easiest way to install and run CanvasSync is by using PIP. Download and install CanvasSync along with its
-dependencies (see below) by running:
-
+The easiest way to install and run CanvasSync is by using PIP. However for such a small fork I felt no need to publish it there, so simply install CanvasSync (main)
+with:
 ```
 pip install CanvasSync
 ```
-
-Alternatively, download the source distribution from the https://github.com/perslev/CanvasSync/tree/master/dist on GitHub
+Or alternatively, download the source distribution from the https://github.com/perslev/CanvasSync/tree/master/dist on GitHub
 (.tar.gz for UNIX and .zip for Windows) and run the following command on the distribution file:
 
 ```
 pip install CanvasSync-<VERSION>.tar.gz
 ```
+
+and follow it up by pulling the changes this fork made.
+
 
 Lastly, you may use the supplied setup.py file to create your own source package or built package for your system.
 
@@ -65,6 +67,7 @@ Command line arguments:
 -h or --help will show the help screen
 -S or --sync to synchronize
 -p to specify settings password (potentially dangerous)
+-t to specify thread count
 
 Setup
 ----------
