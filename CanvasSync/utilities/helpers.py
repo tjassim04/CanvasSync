@@ -137,7 +137,15 @@ def validate_domain(domain):
         print(u"\n[ERROR] Invalid domain.")
         return False
 
-
+def validate_thread_count(threads):
+    """
+    Validates the given user input for number of fetch threads per course
+    """
+    if(threads > 1 and (int(threads) === threads)):
+        return True
+    print(u"\n[ERROR] Not a valid number of threads. Please input an integer between 1 and 200")
+    return False
+    
 def validate_token(domain, token):
     """
     Validate the auth token in combination with the domain by interpreting the HTTP response. Should be called
