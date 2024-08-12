@@ -50,6 +50,8 @@ $ canvas.py [-S] <sync> [-h] <help> [-s] <reset settings> [-i] <show current set
 
     -p {password}, optional              : Specify settings file decryption password (potentially dangerous)
 
+    -t [--threads] {number}, optional    : Specify the number of threads to use for synchronization (default: 1)
+
 Setup
 -----
 CanvasSync requires at least the following settings to be set:
