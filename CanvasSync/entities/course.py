@@ -32,7 +32,8 @@ from CanvasSync.entities.assignments_folder import AssignmentsFolder
 from CanvasSync.entities.folder import Folder
 from CanvasSync.utilities.ANSI import ANSI
 from CanvasSync.utilities import helpers
-
+import threading
+from queue import Queue
 
 class Course(CanvasEntity):
     def __init__(self, course_info, parent, settings):
@@ -159,8 +160,35 @@ class Course(CanvasEntity):
         # Add Various Files folder
         self.add_files_folder()
 
+        #Init a thread queue and enumerate and add all jobs for children
+        child_queue = Queue()
         for child in self:
-            child.sync()
+            child_queue.put(child)
+
+        # Create and start threads
+        num_threads = min(len(self.children), 100)  # Placeholder Large Value until implemented additional arg
+        threads = []
+        for _ in range(num_threads):
+            thread = threading.Thread(target=self._sync_child_worker, args=(child_queue,))
+            thread.start()
+            threads.append(thread)
+
+        # Wait for all threads to complete
+        for thread in threads:
+            thread.join()
+
+    def _sync_child_worker(self, child_queue):
+        """
+        Very Basic async handler. Gets the job done (no mismatched threads) but is not at all optimized.
+        """
+        while not child_queue.empty():
+            try:
+                child = child_queue.get(block=False)
+                child.sync()
+            except Queue.Empty:
+                break
+            finally:
+                child_queue.task_done()
 
     def show(self):
         """ Show the folder hierarchy by printing every level """
