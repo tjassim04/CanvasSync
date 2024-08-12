@@ -28,10 +28,11 @@ from CanvasSync.entities.course import Course
 from CanvasSync.entities.canvas_entity import CanvasEntity
 from CanvasSync.utilities import helpers
 from CanvasSync.utilities.ANSI import ANSI
-
+import threading
+from queue import Queue
 
 class Synchronizer(CanvasEntity):
-    def __init__(self, settings, api):
+    def __init__(self, settings, api, threads=None):
         """
         Constructor method, initializes base CanvasEntity class and adds all children
         Course objects to the list of children
@@ -42,6 +43,7 @@ class Synchronizer(CanvasEntity):
 
         if not settings.is_loaded():
             settings.load_settings("")
+        self.threads = settings.threads or threads
 
         # Start sync by clearing the console window
         helpers.clear_console()
@@ -78,7 +80,9 @@ class Synchronizer(CanvasEntity):
 
     def download_courses(self):
         """ Returns a dictionary of courses from the Canvas server """
-        return self.api.get_courses()
+        courses = self.api.get_courses()
+        # Return all accessible courses
+        return [course for course in courses if not course.get('access_restricted_by_date')]
 
     def add_courses(self):
         """
@@ -124,8 +128,36 @@ class Synchronizer(CanvasEntity):
         print(text_type(self))
 
         self.add_courses()
+        
+        #Init a thread queue and enumerate and add all jobs for children
+        course_queue = Queue()
         for course in self:
-            course.sync()
+            course_queue.put(course)
+
+        # Create and start threads
+        num_threads = min(len(self.children), self.threads)
+        threads = []
+        for _ in range(num_threads):
+            thread = threading.Thread(target=self._sync_course_worker, args=(course_queue,))
+            thread.start()
+            threads.append(thread)
+
+        # Wait for all threads to complete
+        for thread in threads:
+            thread.join()
+
+    def _sync_course_worker(self, course_queue):
+        """
+        Very Basic async handler. Gets the job done (no mismatched threads) but is not at all optimized.
+        """
+        while not course_queue.empty():
+            try:
+                course = course_queue.get(block=False)
+                course.sync()
+            except Queue.Empty:
+                break
+            finally:
+                course_queue.task_done()
 
     def show(self):
         """ Show the folder hierarchy by printing every level """
