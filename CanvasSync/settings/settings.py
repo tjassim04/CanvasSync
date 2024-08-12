@@ -65,6 +65,7 @@ class Settings(object):
         self.download_linked = True
         self.avoid_duplicates = True
         self.use_nicknames = False
+        self.threads = 1
 
         # Get the path pointing to the settings file.
         self.settings_path = os.path.abspath(os.path.expanduser(u"~")
@@ -141,6 +142,8 @@ class Settings(object):
                 self.avoid_duplicates = setting
             if message[:14] == u"Use nicknames$":
                 self.use_nicknames = setting
+            if message[:18] == u"Number of Threads$":
+                self.threads = int(message[18:])
 
         if not helpers.validate_token(self.domain, self.token):
             return False
@@ -191,6 +194,7 @@ class Settings(object):
             else:
                 self.download_linked = user_prompter.ask_for_download_linked(self)
             self.avoid_duplicates = user_prompter.ask_for_avoid_duplicates(self)
+            self.threads = user_prompter.ask_for_threads(self)
 
     def write_settings(self):
         self.print_settings(first_time_setup=False, clear=True)
@@ -210,6 +214,7 @@ class Settings(object):
             settings += u"Assignments$" + str(self.sync_assignments) + u"\n"
             settings += u"Linked files$" + str(self.download_linked) + u"\n"
             settings += u"Avoid duplicates$" + str(self.avoid_duplicates) + u"\n"
+            settings += u"Number of Threads$" + str(self.threads) + u"\n"
 
             out_file.write(encrypt(settings))
 
@@ -239,6 +244,7 @@ class Settings(object):
         print(ANSI.BOLD + u"[*] Sync assignments:         \t" + ANSI.ENDC + (ANSI.GREEN if self.sync_assignments else ANSI.RED) + str(self.sync_assignments) + ANSI.ENDC)
         print(ANSI.BOLD + u"[*] Download linked files:    \t" + ANSI.ENDC + (ANSI.GREEN if self.download_linked else ANSI.RED) + str(self.download_linked) + ANSI.ENDC)
         print(ANSI.BOLD + u"[*] Avoid item duplicates:    \t" + ANSI.ENDC + (ANSI.GREEN if self.avoid_duplicates else ANSI.RED) + str(self.avoid_duplicates) + ANSI.ENDC)
+        print(ANSI.BOLD + u"[*] Number of Threads:    \t" + ANSI.ENDC + (ANSI.GREEN if self.threads > 1 else ANSI.RED) + str(self.threads) + ANSI.ENDC)
 
     def print_settings(self, first_time_setup=True, clear=True):
         """
